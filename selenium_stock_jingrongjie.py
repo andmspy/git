@@ -3,6 +3,9 @@ import time
 from bs4 import BeautifulSoup
 import random
 import pandas as pd
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 
@@ -10,10 +13,11 @@ def get_page_source(url):
     driver = webdriver.Chrome(executable_path='C:\Program Files (x86)\Google\Chrome\Application\chromedriver.exe')
     driver.minimize_window()
     driver.get(url)
+    element = WebDriverWait(driver, 20, 1).until(EC.presence_of_element_located((By.CLASS_NAME, "summary")))
     wb_data = driver.page_source
     soup = BeautifulSoup(wb_data, 'lxml')
-    summary = soup.find('div', class_='summary').find_all('p')[0].get_text()[9:]
-    title = soup.find('title').get_text()[:15]
+    summary = soup.find('div', class_='summary').find_all('p')[0].get_text()
+    title = soup.find('title').get_text()
     driver.quit()
     print(title, summary)
     return [title, summary]
@@ -51,12 +55,17 @@ def main():
     for i in get_code():
         print(j)
         url = r'http://f10.eastmoney.com/f10_v2/CoreConception.aspx?code={}'.format(i)
-        with open('concept.txt', 'a+', encoding='utf-8') as f:
-            f.write(str(get_page_source(url)))
-            f.write('\n')
-            f.close()
-        j += 1
-        time.sleep(random.randint(2, 10))
+        try:
+            with open('concept.txt', 'a+', encoding='utf-8') as f:
+                f.write(str(get_page_source(url)))
+                f.write('\n')
+                f.close()
+            j += 1
+            time.sleep(random.randint(2, 9))
+        except Exception as e:
+            print('出错的链接：')
+            print(e, url)
+            pass
 
 main()
 
